@@ -1,0 +1,154 @@
+# Python program for Finite Automata
+# Pattern searching Algorithm
+
+# number of character is 256 which includes the ascii code of unprintable 
+# control codes and printable characters
+ 
+NO_OF_CHARS = 256
+ 
+def getNextState(pat, M, state, x):
+    '''
+    calculate the next state
+    '''
+    # feed into getNextState to find the z of each tuple of (state,x), 
+    # together with the length of pattern, M and
+    # the whole string pattern, pat
+ 
+    # If the character c is same as next character
+      # in pattern, then simply increment state
+ 
+    # if the state is coincidencely at M which is the final state, state+1 would
+    # be invalid, therefore need to check
+    # if the state is <M , and the text char is equal to pat char, means 
+    # enter the dfa 
+    # pat[state] also indicate that each state is complementary to the 
+    # position of the pattern, so if state is 0, pat[0] is the first character
+    # indicates the direct transition from ->b->{x}->q'
+    if state < M and x == ord(pat[state]):
+        return state+1
+ 
+    i=0
+    # ns stores the result which is next state
+ 
+    # ns finally contains the longest prefix
+     # which is also suffix in "pat[0..state-1]c"
+ 
+     # Start from the largest possible value and
+      # stop when you find a prefix which is also suffix
+    for ns in range(state,0,-1):
+        if ord(pat[ns-1]) == x:
+            while(i<ns-1):
+                if pat[i] != pat[state-ns+1+i]:
+                    break
+                i+=1
+            if i == ns-1:
+                return ns
+    return 0
+ 
+def computeTF(pat, M):
+    '''
+    This function builds the TF table which
+    represents Finite Automata for a given pattern
+    '''
+    global NO_OF_CHARS
+ 
+    # initializing an empty transition table by 
+    # [total number of possible char as columns][total number of states as rows],
+    # all content is null
+    TF = [[0 for i in range(NO_OF_CHARS)]
+          for _ in range(M+1)]
+    # print(TF)
+ 
+    # for every state
+    for state in range(M+1):
+    # for every possible char(ascii form) in each state
+        for x in range(NO_OF_CHARS):
+    # feed into getNextState to find the z of each tuple of (state,x), 
+    # together with the length of pattern, M
+            z = getNextState(pat, M, state, x)
+    # assigning the correct next state into the null column of transition table
+            TF[state][x] = z
+    # return the complete transition table after all state of each char is done.
+    return TF
+ 
+def search(pat, txt):
+    '''
+    Prints all occurrences of pat in txt
+    '''
+    # text = n, |pattern| = M, no. of state = M+1
+    # pat = [a,c,a,d,c], pat[state2]=a, ord(a) = ascii code
+    # x = ascii code of char,
+
+    global NO_OF_CHARS
+    M = len(pat)
+    N = len(txt)
+    TF = computeTF(pat, M) 
+
+    print(TF)  
+ 
+    # Process txt over FA.
+    state=0
+    status=0
+    # initialize state as 0, the text is iterated over and over and transition through  
+    # the transition table by computeTF
+
+    for i in range(N):
+      # searching the next state, q' in the transition table by
+      # TF[current state as i][ascii code of char as j]
+        state = TF[state][ord(txt[i])]
+        # so if the state is equal to the final state(accepting state),
+        # the needed output is printed
+        # state == M, since the number of state is from 0...5, 5 is accepting state
+        if state == M:
+            status+=1
+            print("Pattern found at index: {}".\
+                   format(i-M+1))
+            # print(txt[i], txt[i-M+1],txt[i-M+2],txt[i-M+3],txt[i-M+4],txt[i-M+5],txt[i-M+6],txt[i-M+7])
+            # print(i-M)
+            # print(i+1)
+            a=i-M+1
+            b=i+1
+            for i in range(i-M-14, i+16):
+              if a <= i < b:
+                print('\033[34m', txt[i], end = "")
+              else:
+                print( '\033[0m', txt[i], end = "")
+
+            print("\n")
+
+    if status == 0:
+        print("Pattern not found")
+        print("Status: Pattern Rejected.")
+    else:
+      print("Total occurences of pattern:", end = " ")
+      print(status)
+      print("Status: Pattern Accepted")
+        
+ 
+# Driver program to test above function           
+def main():
+
+#USE THIS DURING DEMONSTRATION
+    
+    # usertext = input("Enter the (filename).txt to be search: ")
+    # userpat = input("Enter pattern to be search: ")
+    # txt = open(usertext).read()
+    # pat = userpat
+
+# FOR TESTING PURPOSE #######################
+
+    # txt = open("assn sample test 3.txt").read()
+    txt = open("assn sample test 4(accepted).txt").read()
+    # txt = "Malaysia is a multiracial country Malaysia has a population of 23.27 million consisting of 61 percent Malays, 30 percent ChiWICA 14nese, 8 percent Indians and 1 percent of other ethnic groups. Malaysia is unique because of its diversity of races, religions and cultures, the stability of the country and many places of interests. Besides, there are many international achievements which are the pride of our nation."
+    # Diversity of races, religions and cultures is a significant characteristic of our nation. 
+    # Malaysia is a multiracial country with a rich cultural heritage. 
+    # Unique to Malaysia is the Open House concept where during the various cultural and religious festival like Hari Raya, Chinese New Year, Deepavali, Gawai Day and others, 
+    # friends and families and even strangers would visit the homes of those who are celebrating the festival, to wish them well and enjoy the feast prepared by the hosts."
+    pat = "abcaab"
+
+###############################
+
+    search(pat, txt)
+ 
+if __name__ == '__main__':
+    main()
